@@ -1,0 +1,5 @@
+c:\users\alejandro_cardenas\documents\visual studio 2015\Projects\Shy\Shy\bin\Debug\Shy.dll
+c:\users\alejandro_cardenas\documents\visual studio 2015\Projects\Shy\Shy\bin\Debug\Shy.pdb
+c:\users\alejandro_cardenas\documents\visual studio 2015\Projects\Shy\Shy\obj\Debug\Shy.csprojResolveAssemblyReference.cache
+c:\users\alejandro_cardenas\documents\visual studio 2015\Projects\Shy\Shy\obj\Debug\Shy.dll
+c:\users\alejandro_cardenas\documents\visual studio 2015\Projects\Shy\Shy\obj\Debug\Shy.pdb
