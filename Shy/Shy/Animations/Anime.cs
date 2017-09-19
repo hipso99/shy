@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 
 namespace Shy.Animations {
@@ -13,7 +14,7 @@ namespace Shy.Animations {
     /// </summary>
     public class Anime {
 
-        private const int TIME = 250;
+        public const int TIME = 250;
 
         public bool isRunning { get; private set; }
         public bool isPaused { get; private set; }
@@ -25,20 +26,39 @@ namespace Shy.Animations {
         private Action animationsChanged;
 
 
-
-        public Anime(FrameworkElement[] elements,int time = TIME,params KeyValuePair<String,object>[] properties) {
+        public Anime(FrameworkElement[] elements, AnimeProperties properties) {
             this.targets = elements;
+            animations = new List<Storyboard>();
+
+            animations.Add(createStoryboard(targets,properties.time,properties.getProperties()));
         }
 
-        public Anime(FrameworkElement element,int time = TIME,params Tuple<String,object>[] properties) {
+        public Anime(FrameworkElement element,AnimeProperties properties) {
             this.targets = new FrameworkElement[] { element };
             animations = new List<Storyboard>();
-            animations.Add(createStoryboard(targets,time,properties));
+            animations.Add(createStoryboard(targets,properties.time,properties.getProperties()));
         }
 
-        public Anime then(int time = TIME,params Tuple<String,object>[] properties) {
-            if (properties.Length > 0)
-                animations.Add(createStoryboard(targets,time,properties));
+        //public Anime(FrameworkElement[] elements,int time = TIME,params Tuple<String,object>[] properties) {
+        //    this.targets = elements;
+        //    animations = new List<Storyboard>();
+        //    animations.Add(createStoryboard(targets,time,properties));
+        //}
+
+        //public Anime(FrameworkElement element,int time = TIME,params Tuple<String,object>[] properties) {
+        //    this.targets = new FrameworkElement[] { element };
+        //    animations = new List<Storyboard>();
+        //    animations.Add(createStoryboard(targets,time,properties));
+        //}
+
+        //public Anime then(int time = TIME,params Tuple<String,object>[] properties) {
+        //    if (properties.Length > 0)
+        //        animations.Add(createStoryboard(targets,time,properties));
+        //    return this;
+        //}
+
+        public Anime then(AnimeProperties properties) {
+            animations.Add(createStoryboard(targets,properties.time,properties.getProperties()));
             return this;
         }
 
@@ -73,7 +93,7 @@ namespace Shy.Animations {
         private void animationCompleted(object sender,EventArgs e) {
             currentAnimation++;
             if (currentAnimation < animations.Count) {
-                targets[0].BeginStoryboard(animations[currentAnimation],HandoffBehavior.SnapshotAndReplace,true);
+                animations[currentAnimation].Begin(targets[0],true);
             } else {
                 isRunning = false;
                 animationsCompleted?.Invoke();
@@ -81,13 +101,13 @@ namespace Shy.Animations {
         }
 
 
-        private Storyboard createStoryboard(FrameworkElement[] elements,int time,Tuple<String,object>[] properties) {
+        private Storyboard createStoryboard(FrameworkElement[] elements,int time,IEnumerable<Tuple<String,object>> properties) {
             Storyboard sb = new Storyboard();
             Duration duration = new Duration(TimeSpan.FromMilliseconds(time));
 
             foreach (var el in elements) {
                 foreach (var prop in properties) {
-                    Timeline animation = createAnimation(duration, prop);
+                    Timeline animation = createAnimation(duration, prop.Item2);
                     Storyboard.SetTargetProperty(animation,new PropertyPath(prop.Item1));
                     Storyboard.SetTarget(animation,el);
                     sb.Children.Add(animation);
@@ -101,24 +121,25 @@ namespace Shy.Animations {
             return sb;
         }
 
-
-        public Timeline createAnimation(Duration duration,Tuple<String,object> prop) {
+        public Timeline createAnimation(Duration duration,object value) {
             Timeline tl = null;
 
-            if (prop.Item2 is byte) {
-                tl = new ByteAnimation((byte)prop.Item2,duration);
-            } else if (prop.Item2 is Int16) {
-                tl = new Int16Animation((Int16)prop.Item2,duration);
-            } else if (prop.Item2 is Int32) {
-                tl = new Int32Animation((Int32)prop.Item2,duration);
-            } else if (prop.Item2 is Int64) {
-                tl = new Int64Animation((Int64)prop.Item2,duration);
-            } else if (prop.Item2 is double) {
-                tl = new DoubleAnimation((double)prop.Item2,duration);
-            } else if (prop.Item2 is decimal) {
-                tl = new DecimalAnimation((decimal)prop.Item2,duration);
-            } else if (prop.Item2 is Thickness) {
-                tl = new ThicknessAnimation((Thickness)prop.Item2,duration);
+            if (value is byte) {
+                tl = new ByteAnimation((byte)value,duration);
+            } else if (value is Int16) {
+                tl = new Int16Animation((Int16)value,duration);
+            } else if (value is Int32) {
+                tl = new Int32Animation((Int32)value,duration);
+            } else if (value is Int64) {
+                tl = new Int64Animation((Int64)value,duration);
+            } else if (value is double) {
+                tl = new DoubleAnimation((double)value,duration);
+            } else if (value is decimal) {
+                tl = new DecimalAnimation((decimal)value,duration);
+            } else if (value is Thickness) {
+                tl = new ThicknessAnimation((Thickness)value,duration);
+            } else if (value is SolidColorBrush) {
+                tl = new ColorAnimation((value as SolidColorBrush).Color, duration);
             }
 
             return tl;
@@ -126,5 +147,53 @@ namespace Shy.Animations {
 
     }
 
+
+    public class AnimeProperties {
+        private Dictionary<String,object> parameters = new Dictionary<string, object>();
+
+        public int time { get; set; } = Anime.TIME;
+
+        public double height {
+            get {
+                if (parameters.ContainsKey("Height"))
+                    return (double)parameters["Height"];
+                return 0;
+            }
+            set {
+                parameters["Height"] = value;
+            }
+        }
+
+        public double width {
+            get {
+                if (parameters.ContainsKey("Width"))
+                    return (double)parameters["Width"];
+                return 0;
+            }
+            set {
+                parameters["Width"] = value;
+            }
+        }
+        public double translateX { get; set; }
+        public double opacity {
+            get {
+                if (parameters.ContainsKey("Opacity"))
+                    return (double)parameters["Opacity"];
+                return 0;
+            }
+            set {
+                parameters["Opacity"] = value;
+            }
+        }
+
+        public List<Tuple<string,object>> getProperties() {
+            List<Tuple<string,object>> par = new List<Tuple<string,object>>();
+            foreach (var el in parameters) {
+                par.Add(new Tuple<string, object>(el.Key,el.Value));
+            }
+            return par;
+        }
+
+}
 
 }

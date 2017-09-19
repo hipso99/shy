@@ -3,3 +3,8 @@ c:\users\alejandro_cardenas\documents\visual studio 2015\Projects\Shy\Shy\bin\De
 c:\users\alejandro_cardenas\documents\visual studio 2015\Projects\Shy\Shy\obj\Debug\Shy.csprojResolveAssemblyReference.cache
 c:\users\alejandro_cardenas\documents\visual studio 2015\Projects\Shy\Shy\obj\Debug\Shy.dll
 c:\users\alejandro_cardenas\documents\visual studio 2015\Projects\Shy\Shy\obj\Debug\Shy.pdb
+C:\Users\alejandro_cardenas\Documents\Alejandro\Repos\shy\Shy\Shy\bin\Debug\Shy.dll
+C:\Users\alejandro_cardenas\Documents\Alejandro\Repos\shy\Shy\Shy\bin\Debug\Shy.pdb
+C:\Users\alejandro_cardenas\Documents\Alejandro\Repos\shy\Shy\Shy\obj\Debug\Shy.csprojResolveAssemblyReference.cache
+C:\Users\alejandro_cardenas\Documents\Alejandro\Repos\shy\Shy\Shy\obj\Debug\Shy.dll
+C:\Users\alejandro_cardenas\Documents\Alejandro\Repos\shy\Shy\Shy\obj\Debug\Shy.pdb

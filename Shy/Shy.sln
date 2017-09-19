@@ -5,7 +5,7 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shy", "Shy\Shy.csproj", "{671027D7-323C-476E-A69D-AFEBB59AF1D6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShySamples", "..\..\..\VSProjects\ShySamples\ShySamples.csproj", "{AADE7002-FA59-44DB-8E25-94235B612C87}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShySamples", "..\ShySamples\ShySamples.csproj", "{AADE7002-FA59-44DB-8E25-94235B612C87}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
