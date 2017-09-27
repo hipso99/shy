@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Shy.Animations;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -21,10 +23,17 @@ namespace Shy.Animations {
 
         private int currentAnimation;
         private List<Storyboard> animations;
+        //private IEnumerable<FrameworkElement> targets;
         private FrameworkElement[] targets;
         private Action animationsCompleted;
         private Action animationsChanged;
 
+
+        public Anime(AnimeProperties properties) {
+            animations = new List<Storyboard>();
+            targets = properties.getTargets();
+            animations.Add(createStoryboard(properties));
+        }
 
         public Anime(FrameworkElement[] elements, AnimeProperties properties) {
             this.targets = elements;
@@ -58,7 +67,9 @@ namespace Shy.Animations {
         //}
 
         public Anime then(AnimeProperties properties) {
-            animations.Add(createStoryboard(targets,properties.time,properties.getProperties()));
+            //animations.Add(createStoryboard(targets,properties.time,properties.getProperties()));
+            properties.targets = this.targets;
+            animations.Add(createStoryboard(properties));
             return this;
         }
 
@@ -76,16 +87,16 @@ namespace Shy.Animations {
             if (!isRunning) {
                 currentAnimation = 0;
                 isRunning = true;
-                animations[currentAnimation].Begin(targets[0],true);
+                animations[currentAnimation].Begin(targets.ElementAt(0),true);
             } else if (isPaused) {
-                animations[currentAnimation].Resume(targets[0]);
+                animations[currentAnimation].Resume(targets.ElementAt(0));
                 isPaused = false;
             }
         }
 
         public void pause() {
             if (isRunning) {
-                animations[currentAnimation].Pause(targets[0]);
+                animations[currentAnimation].Pause(targets.ElementAt(0));
                 isPaused = true;
             }
         }
@@ -93,7 +104,7 @@ namespace Shy.Animations {
         private void animationCompleted(object sender,EventArgs e) {
             currentAnimation++;
             if (currentAnimation < animations.Count) {
-                animations[currentAnimation].Begin(targets[0],true);
+                animations[currentAnimation].Begin(targets.ElementAt(0),true);
             } else {
                 isRunning = false;
                 animationsCompleted?.Invoke();
@@ -101,7 +112,7 @@ namespace Shy.Animations {
         }
 
 
-        private Storyboard createStoryboard(FrameworkElement[] elements,int time,IEnumerable<Tuple<String,object>> properties) {
+        private Storyboard createStoryboard(IEnumerable<FrameworkElement> elements,int time,IEnumerable<Tuple<String,object>> properties) {
             Storyboard sb = new Storyboard();
             Duration duration = new Duration(TimeSpan.FromMilliseconds(time));
 
@@ -109,6 +120,28 @@ namespace Shy.Animations {
                 foreach (var prop in properties) {
                     Timeline animation = createAnimation(duration, prop.Item2);
                     Storyboard.SetTargetProperty(animation,new PropertyPath(prop.Item1));
+                    Storyboard.SetTarget(animation,el);
+                    sb.Children.Add(animation);
+                }
+            }
+
+            sb.Completed += animationCompleted;
+            sb.Changed += (s,e) => {
+                animationsChanged?.Invoke();
+            };
+            return sb;
+        }
+
+        private Storyboard createStoryboard(AnimeProperties properties) {
+            Storyboard sb = new Storyboard();
+            Duration duration = new Duration(TimeSpan.FromMilliseconds(properties.time));
+
+            foreach (var el in properties.getTargets()) {
+                foreach (var prop in properties.getAnimeProperties()) {
+                    Timeline animation = prop.getTimeLine(el,duration);
+                    foreach (var target in prop.Targets) {
+                        Storyboard.SetTargetProperty(animation,target);
+                    }
                     Storyboard.SetTarget(animation,el);
                     sb.Children.Add(animation);
                 }
@@ -149,32 +182,77 @@ namespace Shy.Animations {
 
 
     public class AnimeProperties {
+
         private Dictionary<String,object> parameters = new Dictionary<string, object>();
+        private Dictionary<String,IAnimeProperty> animeProperties = new Dictionary<string,IAnimeProperty>();
+
+
+        public FrameworkElement target { get; set; }
+
+        public FrameworkElement[] targets { get; set; }
 
         public int time { get; set; } = Anime.TIME;
 
-        public double height {
+        public bool loop { get; set; } = false;
+
+        public DoubleAnimeProperty height {
             get {
-                if (parameters.ContainsKey("Height"))
-                    return (double)parameters["Height"];
+                if (animeProperties.ContainsKey("Height"))
+                    return (DoubleAnimeProperty)animeProperties["Height"];
                 return 0;
             }
             set {
-                parameters["Height"] = value;
+                if (value != null) {
+                    value.setTargets(new PropertyPath("Height"));
+                }
+                animeProperties["Height"] = value;
             }
         }
 
-        public double width {
+        public DoubleAnimeProperty width {
             get {
-                if (parameters.ContainsKey("Width"))
-                    return (double)parameters["Width"];
+                if (animeProperties.ContainsKey("Width"))
+                    return (DoubleAnimeProperty)animeProperties["Width"];
                 return 0;
             }
             set {
-                parameters["Width"] = value;
+                if (value != null) {
+                    value.setTargets(new PropertyPath("Width"));
+                }
+                animeProperties["Width"] = value;
             }
         }
-        public double translateX { get; set; }
+
+        public TranslateAnimeProperty translateX {
+            get {
+                if (animeProperties.ContainsKey("translateX"))
+                    return (TranslateAnimeProperty)animeProperties["translateX"];
+                return 0;
+            }
+            set {
+                if (value != null) {
+                    value.axis = Axis.X;
+                }
+                animeProperties["translateX"] = value;
+            }
+        }
+
+        public TranslateAnimeProperty translateY {
+            get {
+                if (animeProperties.ContainsKey("translateY"))
+                    return (TranslateAnimeProperty)animeProperties["translateY"];
+                return 0;
+            }
+            set {
+                if (value != null) {
+                    value.axis = Axis.Y;
+                }
+                animeProperties["translateY"] = value;
+            }
+        }
+
+        public ThicknessAnimeProperty margin { get; set; }
+
         public double opacity {
             get {
                 if (parameters.ContainsKey("Opacity"))
@@ -194,6 +272,23 @@ namespace Shy.Animations {
             return par;
         }
 
-}
+        public IEnumerable<IAnimeProperty> getAnimeProperties() {
+            foreach (var prop in animeProperties) {
+                yield return prop.Value;
+            }
+        }
+
+        //public IEnumerable<FrameworkElement> getTargets() {
+        public FrameworkElement[] getTargets() {
+            if (targets == null) {
+                return new FrameworkElement[] { target };
+            } else /*if (targets != null)*/ {
+                return targets;
+                //foreach (FrameworkElement el in targets) {
+                //    yield return el;
+                //}
+            }
+        }
+    }
 
 }

@@ -27,42 +27,44 @@ namespace ShySamples {
         }
 
         private void MainWindow_Loaded(object sender,RoutedEventArgs e) {
-            anime = new Anime(
-                element: rectangle,
-                properties: new AnimeProperties {
-                    height = rectangle.ActualHeight + 50,
-                    //opacity = 0,
-                    time = 300,
+            anime = new Anime(new AnimeProperties {
+                target = rectangle,
+                //time = 500,
+                width = rectangle.ActualWidth + 50,
+                height = rectangle.ActualHeight - 5,
+                translateX = 250,
             }).then(new AnimeProperties {
-                width = rectangle.ActualWidth + 500,
-                //opacity = 1,
-                time = 500,
-            }).then(new AnimeProperties {
+                //time = 500,
+                translateX = -250,
+                width = rectangle.ActualWidth + 20,
+                height = rectangle.ActualHeight - 5,
+        }).then(new AnimeProperties {
+                //time = 500,
+                width = rectangle.ActualWidth + 20,
+                translateX = 100,
+                height = rectangle.ActualHeight + 5,
+        }).then(new AnimeProperties {
+                //time = 500,
                 width = rectangle.Width,
                 height = rectangle.Height,
+                translateX = 50,
+            }).then(new AnimeProperties {
+                //time = 500,
+                translateX = 0,
             });
-            /*anime = new Anime(
-                element: rectangle,
-                time:500,
-                properties: new [] {
-//                    new Tuple<String,object>("Opacity",0.0),
-                    new Tuple<String,object>("Height",rectangle.ActualHeight + 50)
-                }
-            ).then(
-                time: 500,
-                properties: new[] {
-  //                  new Tuple<String,object>("Opacity",1.0),
-                    new Tuple<String,object>("Width",rectangle.ActualWidth + 500),
-                    new Tuple<String,object>("Fill.Color",Brushes.Beige),
-                }
-            ).then(
-                properties: new[] {
-                    new Tuple<String,object>("Width",rectangle.Width),
-                    new Tuple<String,object>("Height",rectangle.Height),
-                    new Tuple<String,object>("Fill.Color",Brushes.Azure),
+            //anime = new Anime(
+            //    element: rectangle,
+            //    properties: new AnimeProperties {
+            //        height = rectangle.ActualHeight + 50,
+            //        time = 300,
 
-                }
-            );*/
+            //}).then(new AnimeProperties {
+            //    width = rectangle.ActualWidth + 500,
+            //    time = 500,
+            //}).then(new AnimeProperties {
+            //    width = rectangle.Width,
+            //    height = rectangle.Height,
+            //});
         }
 
         private void start_Click(object sender,RoutedEventArgs e) {
