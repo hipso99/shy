@@ -9,17 +9,25 @@ using System.Windows.Media.Animation;
 
 namespace Shy.Animations {
     public interface IAnimeProperty {
-        //object value { get; set; }
-        //object finalValue { get; set; }
+        RepeatBehavior repeat { get; set; }
+        IEasingFunction easing { get; set; }
         bool registerAnimation { get; set; }
         Timeline getTimeLine(object el,Duration duration);
         IEnumerable<PropertyPath> Targets { get; set; }
     }
 
     public abstract class AnimeProperty<T> : IAnimeProperty {
-        protected bool useInitialValue;
+        public bool useInitialValue { get; protected set; }
+
         public T to { get; set; }
         public T from { get; set; }
+        public abstract RepeatBehavior repeat { get; set; }
+        public abstract Timeline getTimeLine(object el,Duration duration);
+        public abstract IEnumerable<PropertyPath> Targets { get; set; }
+        public bool registerAnimation { get; set; }
+
+        public abstract IEasingFunction easing { get; set; }
+
         public AnimeProperty(T value) {
             this.to = value;
         }
@@ -42,11 +50,6 @@ namespace Shy.Animations {
         public void setTargets(params PropertyPath[] targets) {
             Targets = targets;
         }
-
-        public abstract Timeline getTimeLine(object el,Duration duration);
-        public abstract IEnumerable<PropertyPath> Targets { get; set; }
-
-        public bool registerAnimation { get; set; }
     }
 
     public class DoubleAnimeProperty : AnimeProperty<Double> {
@@ -58,13 +61,21 @@ namespace Shy.Animations {
 
         public DoubleAnimeProperty(Double[] arr) : base(arr) {}
 
+        public override RepeatBehavior repeat { get; set; }
+        public override IEasingFunction easing { get; set; }
+
         public override IEnumerable<PropertyPath> Targets { get; set; }
 
+
         public override Timeline getTimeLine(object el,Duration duration) {
+            DoubleAnimation timeLine;
             if (useInitialValue)
-                return new DoubleAnimation(from,to,duration);
+                timeLine = new DoubleAnimation(from,to,duration);
             else
-                return new DoubleAnimation(to,duration);
+                timeLine = new DoubleAnimation(to,duration);
+
+            timeLine.EasingFunction = easing;
+            return timeLine;
         }
 
         public static implicit operator DoubleAnimeProperty(Double value) {
@@ -82,8 +93,16 @@ namespace Shy.Animations {
 
 
     public class ThicknessAnimeProperty : AnimeProperty<Thickness> {
+        public override IEasingFunction easing { get; set; }
+        public override RepeatBehavior repeat { get; set; }
         public ThicknessAnimeProperty() { }
         public ThicknessAnimeProperty(Thickness value) : base (value) { }
+
+        public ThicknessAnimeProperty(TranslateAnimeProperty transX,TranslateAnimeProperty transY) {
+            to = getThicknessFromArr(transX.to, transY.to);
+            from = getThicknessFromArr(transX.from,transY.from);
+            this.useInitialValue = transX.useInitialValue || transY.useInitialValue;
+        }
 
         public ThicknessAnimeProperty(Func<Thickness> generator) : base(generator) { }
 
@@ -105,21 +124,35 @@ namespace Shy.Animations {
             }
         }
 
-        public override IEnumerable<PropertyPath> Targets {
-            get {
-                throw new NotImplementedException();
-            }
-
-            set {
-                throw new NotImplementedException();
-            }
-        }
+        public override IEnumerable<PropertyPath> Targets { get; set; } = new PropertyPath[] { new PropertyPath("Margin") };
 
         public override Timeline getTimeLine(object el,Duration duration) {
-            throw new NotImplementedException();
+
+            ThicknessAnimation timeLine;
+            var currentValue = (el as FrameworkElement).Margin;
+            to = new Thickness(
+                to.Left + currentValue.Left,
+                to.Top + currentValue.Top,
+                currentValue.Right - to.Left,
+                currentValue.Bottom - to.Top
+            );
+
+            if (useInitialValue) {
+                from  = new Thickness(
+                    from.Left + currentValue.Left,
+                    from.Top + currentValue.Top,
+                    currentValue.Right - from.Left,
+                    currentValue.Bottom - from.Top
+                );
+                timeLine = new ThicknessAnimation(from,to,duration);
+            } else { 
+                timeLine = new ThicknessAnimation(to,duration);
+            }
+            timeLine.EasingFunction = easing;
+            return timeLine;
         }
 
-        private Thickness getThicknessFromArr(Double[] arr) {
+        private Thickness getThicknessFromArr(params Double[] arr) {
             Thickness margin = default(Thickness);
             if (arr.Length == 2) {
                 margin = new Thickness(arr[0],arr[1],arr[0],arr[1]);
@@ -147,15 +180,16 @@ namespace Shy.Animations {
     }
 
     public class TranslateAnimeProperty : DoubleAnimeProperty {
-        public Axis axis;
-
-        public override IEnumerable<PropertyPath> Targets { get; set; } = new PropertyPath[] { new PropertyPath("Thickness")};
+        public Axis axis { get; set; }
+        public override IEasingFunction easing { get; set; }
+        public override RepeatBehavior repeat { get; set; }
+        public override IEnumerable<PropertyPath> Targets { get; set; } = new PropertyPath[] { new PropertyPath("Margin") };
         public TranslateAnimeProperty() {
             //registerAnimation = true;
         }
 
         public TranslateAnimeProperty(Double value) : base(value) {
-            setTargets(new PropertyPath("Margin"));
+            //setTargets(new PropertyPath("Margin"));
         }
 
         public TranslateAnimeProperty(Func<double> generator) : base(generator) { }
@@ -164,6 +198,7 @@ namespace Shy.Animations {
 
 
         public override Timeline getTimeLine(object el,Duration duration) {
+            ThicknessAnimation timeLine;
             double startOffset, endOffset;
             var currentValue = (el as FrameworkElement).Margin;
             if (axis == Axis.X) {
@@ -174,25 +209,27 @@ namespace Shy.Animations {
                     startOffset = currentValue.Left + from;
                     endOffset = currentValue.Right - from;
                     var start = new Thickness(startOffset,currentValue.Top,endOffset,currentValue.Bottom);
-                    return new ThicknessAnimation(start,end,duration);
+                    timeLine = new ThicknessAnimation(start,end,duration);
                 } else {
-                    return new ThicknessAnimation(end,duration);
+                    timeLine = new ThicknessAnimation(end,duration);
                 }
             } else if (axis == Axis.Y) {
                 startOffset = currentValue.Top + to;
                 endOffset = currentValue.Bottom - to;
-                var end = new Thickness(startOffset,currentValue.Top,endOffset,currentValue.Bottom);
+                var end = new Thickness(currentValue.Left,startOffset,currentValue.Left,endOffset);
                 if (useInitialValue) {
                     startOffset = currentValue.Top + from;
                     endOffset = currentValue.Bottom - from;
-                    var start = new Thickness(startOffset,currentValue.Top,endOffset,currentValue.Bottom);
-                    return new ThicknessAnimation(start,end,duration);
+                    var start = new Thickness(currentValue.Left,startOffset,currentValue.Left,endOffset);
+                    timeLine = new ThicknessAnimation(start,end,duration);
                 } else {
-                    return new ThicknessAnimation(end,duration);
+                    timeLine = new ThicknessAnimation(end,duration);
                 }
             } else {
-                return new ThicknessAnimation(currentValue,duration);
+                timeLine = new ThicknessAnimation(currentValue,duration);
             }
+            timeLine.EasingFunction = easing;
+            return timeLine;
         }
 
         public static implicit operator TranslateAnimeProperty(Double value) {
