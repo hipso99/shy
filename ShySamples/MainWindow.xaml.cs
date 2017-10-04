@@ -59,7 +59,7 @@ namespace ShySamples {
                     width = 0,
                     time = duration,
                     easing = function,
-                    repeat = RepeatBehavior.Forever,
+                    //repeat = RepeatBehavior.Forever,
                     delay = (duration / maxElements) * i * 10,
                 });
                 animations.Add(animation);
@@ -84,51 +84,6 @@ namespace ShySamples {
             return ellipses;
         }
 
-
-
-            //anime = new Anime(new AnimeProperties {
-            //    target = rectangle,
-            //    translateX = new double[] { -250 , 250 },
-            //    easing = function,
-            //    repeat = RepeatBehavior.Forever,
-            //});
-
-                //anime = new Anime(new AnimeProperties {
-                //    target = rectangle,
-                //    //width = rectangle.ActualWidth + 50,
-                //    width = new DoubleAnimeProperty {
-                //        to = rectangle.ActualWidth + 50,
-                //        easing = function,
-                //    },
-                //    height = rectangle.ActualHeight - 5,
-                //    translateX = new double[] {0, 250},
-                //    easing = function,
-                //}).then(new AnimeProperties {
-                //    translateX = new double[] { 205, -250 },
-                //    width = rectangle.ActualWidth + 20,
-                //    height = rectangle.ActualHeight - 5,
-                //    //easing = function,
-                //}).then(new AnimeProperties {
-                //    width = rectangle.ActualWidth + 20,
-                //    translateX = 100,
-                //    //easing = function,
-                //    //height = rectangle.ActualHeight + 5,
-                //}).then(new AnimeProperties {
-                //    width = rectangle.Width - 10,
-                //    height = rectangle.Height + 10,
-                //    translateX = 0,
-                //    time = 125,
-                //    //easing = function,
-                //}).then(new AnimeProperties {
-                //    width = rectangle.Width + 10,
-                //    height = rectangle.Height,
-                //    //easing = function,
-                //}).then(new AnimeProperties {
-                //    width = rectangle.Width,
-                //    easing = function,
-                //    //height = rectangle.Height,
-                //});
-        //}
 
 
         private void start_Click(object sender,RoutedEventArgs e) {

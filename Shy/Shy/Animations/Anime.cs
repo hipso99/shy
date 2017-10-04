@@ -24,7 +24,7 @@ namespace Shy.Animations {
         private int currentAnimation;
         private List<Storyboard> animations;
         private FrameworkElement[] targets;
-        private Action animationsCompleted;
+        private Action<Object> animationsCompleted;
         private Action animationsChanged;
 
 
@@ -40,7 +40,7 @@ namespace Shy.Animations {
             return this;
         }
 
-        public Anime completed(Action completed) {
+        public Anime completed(Action<Object> completed) {
             this.animationsCompleted = completed;
             return this;
         }
@@ -74,7 +74,7 @@ namespace Shy.Animations {
                 animations[currentAnimation].Begin(targets.ElementAt(0),true);
             } else {
                 isRunning = false;
-                animationsCompleted?.Invoke();
+                animationsCompleted?.Invoke(sender);
             }
         }
 
@@ -110,7 +110,9 @@ namespace Shy.Animations {
                     }
 
                     Timeline animation = prop.getTimeLine(el,duration);
-                    animation.RepeatBehavior = properties.repeat;
+
+                    //if(properties.repeat != null)
+                    //    animation.RepeatBehavior = properties.repeat;
 
                     foreach (var target in prop.Targets) {
                         Storyboard.SetTargetProperty(animation,target);
@@ -120,8 +122,8 @@ namespace Shy.Animations {
                     sb.Children.Add(animation);
                 }
             }
-
-            sb.BeginTime = TimeSpan.FromMilliseconds(properties.delay);
+            if(properties.delay > 0 )
+                sb.BeginTime = TimeSpan.FromMilliseconds(properties.delay);
             sb.Completed += animationCompleted;
             sb.Changed += (s,e) => {
                 animationsChanged?.Invoke();
