@@ -27,6 +27,7 @@ namespace ShySamples.Examples {
         double angle;
         private Random rnd = new Random();
         private Anime animation;
+        private Anime animationSize;
         private Brush[] colors = new Brush[] { Brushes.Yellow,Brushes.YellowGreen,Brushes.White,Brushes.LightSteelBlue,Brushes.MediumBlue };
 
 
@@ -44,6 +45,7 @@ namespace ShySamples.Examples {
 
         private void GrdContainer_MouseUp(object sender,MouseButtonEventArgs e) {
             if (startAnimation) {
+                animationSize.pause();
                 currentBullet.endMillis = e.Timestamp;
                 launchBullet(currentBullet);
                 startAnimation = false;
@@ -58,6 +60,7 @@ namespace ShySamples.Examples {
                 currentBullet.startMillis = e.Timestamp;
                 currentBullet.bullet.Margin = getMargin(e.GetPosition(this));
                 grdContainer.Children.Add(currentBullet.bullet);
+                animateSize(currentBullet);
             } else {
                 currentBullet.force += 1;
             }
@@ -70,9 +73,6 @@ namespace ShySamples.Examples {
             angle = rnd.NextDouble() * Math.PI * 2;
             animation = new Anime(new AnimeProperties {
                 target = bullet.bullet,
-                height = bullet.bullet.ActualHeight + radius * 10,
-                width = bullet.bullet.ActualWidth + radius * 10,
-            }).then(new AnimeProperties {
                 translateX = Math.Cos(angle) * distance,
                 translateY = Math.Sin(angle) * distance,
                 height = 0,
@@ -83,6 +83,16 @@ namespace ShySamples.Examples {
             });
 
             animation.start();
+        }
+
+        private void animateSize(RecBullet bullet) {
+            animationSize = new Anime(new AnimeProperties {
+                target = bullet.bullet,
+                height = 500,
+                width = 500,
+                time = 2000
+            });
+            animationSize.start();
         }
 
         public Thickness getMargin(Point p) {
